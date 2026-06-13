@@ -1,0 +1,66 @@
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using NetLab.Server.Messages;
+
+namespace NetLab.Server
+{
+    public class EchoServer
+    {
+        private readonly int _port;
+
+        public EchoServer(int port = 9000)
+        {
+            _port = port;
+        }
+
+        public void Start()
+        {
+            TcpListener listener = new TcpListener(IPAddress.Any, _port);
+            listener.Start();
+            Console.WriteLine($"Echo 服务端已启动，监听 0.0.0.0:{_port}");
+            Console.WriteLine("等待客户端连接...");
+
+            while (true)
+            {
+                TcpClient client = listener.AcceptTcpClient();
+                Console.WriteLine($"客户端已连接：{client.Client.RemoteEndPoint}");
+                Task.Run(() => HandleClient(client));
+            }
+        }
+
+        private void HandleClient(TcpClient client)
+        {
+            try
+            {
+                using NetworkStream stream = client.GetStream();
+
+                while (true)
+                {
+                    byte[]? payload = FrameCodec.ReceiveFrame(stream);
+                    if (payload == null)
+                    {
+                        Console.WriteLine($"客户端 {client.Client.RemoteEndPoint} 已断开");
+                        break;
+                    }
+
+                    string text = Encoding.UTF8.GetString(payload);
+                    Console.WriteLine($"[{client.Client.RemoteEndPoint}] 收到帧：{payload.Length} 字节 → {text}");
+
+                    // 业务层构造 ASDU → 转字节 → 传给传输层
+                    IAsdu asdu = new BinaryAsdu(payload);
+                    FrameCodec.SendFrame(stream, asdu.GetContent());
+                    Console.WriteLine($"[{client.Client.RemoteEndPoint}] 回显 {payload.Length} 字节");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"处理客户端出错：{ex.Message}");
+            }
+            finally
+            {
+                client.Close();
+            }
+        }
+    }
+}
