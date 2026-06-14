@@ -33,15 +33,23 @@ namespace NetLab.Protocol.Exchange
             _stream.Write(data, 0, data.Length);
             _stream.Flush();
         }
-        //基于 TCP 已经保证的“有序字节流”自己循环 Read直到凑够 count 个字节
+        
         public byte[]? ReadExactly(int count)
         {
             byte[] buffer = new byte[count];
             int total = 0;
             while (total < count)
             {
-                int n = _stream.Read(buffer, total, count - total);
-                //没数据但连接未断时，Read 会等；n == 0 基本表示连接关闭
+                int n;
+                try
+                {
+                    n = _stream.Read(buffer, total, count - total);
+                }
+                catch (IOException io)
+                {
+                    Console.WriteLine("IO寮傚父:",io);
+                    return null;
+                }
                 if (n == 0) return null;
                 total += n;
             }

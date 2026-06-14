@@ -60,11 +60,17 @@
 
 ---
 
-### Phase 4 — 多业务分发（预计后续）
+### Phase 4 — 业务协商与 Channel 分发（当前）
 
-一个端口处理 Manage/File/Agent 三种业务。协商帧 + Business 枚举 + IChannel 接口。
+同一个端口接受多种业务连接，首帧协商确定归属，分发给对应 Channel。
 
-**对应 RemoteOps：** `Server.cs`、`EquipChannel.cs`、`ChannelManageProcess.cs`
+| 序号 | 内容 | 文档 |
+|------|------|------|
+| 4.1 | 业务协商与 Channel 分发 — 同端口多业务 | [docs/tutorials/06-business-dispatch.md](docs/tutorials/06-business-dispatch.md) |
+
+**代码：** `Protocol/Business.cs`、`Protocol/IChannel.cs`、`Protocol/BusinessServer.cs`、`Protocol/Channels/`、`Client/Net.cs::Connect`
+
+**对应 RemoteOps：** `Server.StartupChannel`、`Business` 枚举、`BaseMainServer.Connect`
 
 ---
 
