@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using NetLab.Protocol;
+using NetLab.Protocol.Exchange;
 using NetLab.Protocol.Messages;
 
 namespace NetLab.Server
@@ -35,31 +36,31 @@ namespace NetLab.Server
             try
             {
                 using NetworkStream stream = client.GetStream();
+      
+                using IExchange exchange = new StreamExchange(stream);
 
                 while (true)
                 {
-                    byte[]? payload = FrameCodec.ReceiveFrame(stream);
+                    byte[]? payload = FrameCodec.ReceiveFrame(exchange);
                     if (payload == null)
                     {
                         Console.WriteLine($"客户端 {client.Client.RemoteEndPoint} 已断开");
                         break;
                     }
-                    if (payload != null && payload.Length > 0 && payload[0] == 0xFF)
+
+                    if (payload.Length > 0 && payload[0] == 0xFF)
                     {
-                        Console.WriteLine("收到心跳");
-                        // 不回复或回复特定内容
+                        Console.WriteLine($"[{client.Client.RemoteEndPoint}] 收到心跳");
                     }
                     else
                     {
                         string text = Encoding.UTF8.GetString(payload);
                         Console.WriteLine($"[{client.Client.RemoteEndPoint}] 收到帧：{payload.Length} 字节 → {text}");
 
-                        // 业务层构造 ASDU → 转字节 → 传给传输层
                         IAsdu asdu = new BinaryAsdu(payload);
-                        FrameCodec.SendFrame(stream, asdu.GetContent());
+                        FrameCodec.SendFrame(exchange, asdu.GetContent());
                         Console.WriteLine($"[{client.Client.RemoteEndPoint}] 回显 {payload.Length} 字节");
                     }
-  
                 }
             }
             catch (Exception ex)
