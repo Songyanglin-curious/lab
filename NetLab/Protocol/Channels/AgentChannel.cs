@@ -1,5 +1,4 @@
 using NetLab.Protocol.Exchange;
-using Protocol.Channels;
 
 namespace NetLab.Protocol.Channels
 {

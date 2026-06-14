@@ -74,11 +74,17 @@
 
 ---
 
-### Phase 5 — TLCP 加密（预计后续）
+### Phase 5 — TLCP 加密（当前）
 
-IExchange 的第二个实现：TLCPExchange。不改业务代码完成加密升级。
+IExchange 之上包一层加密，业务代码 / FrameCodec / Channel 一行不改。
 
-**对应 RemoteOps：** `TLCPDataExchange/`、`Ysh.Tlcp/`
+| 序号 | 内容 | 文档 |
+|------|------|------|
+| 5.1 | 加密通道透明替换 — SecureExchange | [docs/tutorials/07-tlcp-encryption.md](docs/tutorials/07-tlcp-encryption.md) |
+
+**代码：** `Protocol/Exchange/SecureExchange.cs`、`BusinessServer.ExchangeWrapper`
+
+**对应 RemoteOps：** `TLCPDataExchange.TLCPClient`（位置类比，不等价加密实现）
 
 ---
 
@@ -96,7 +102,16 @@ NetLab/
 │   ├── FrameCodec.cs
 │   ├── Exchange/
 │   │   ├── IExchange.cs
-│   │   └── StreamExchange.cs
+│   │   ├── StreamExchange.cs
+│   │   ├── SecureExchange.cs       Phase 5
+│   │   └── MockExchange.cs
+│   ├── Channels/                    Phase 4
+│   │   ├── IChannel.cs
+│   │   ├── EchoChannel.cs
+│   │   ├── FileChannel.cs
+│   │   └── AgentChannel.cs
+│   ├── Business.cs                  Phase 4
+│   ├── BusinessServer.cs            Phase 4
 │   └── Messages/
 │       ├── IAsdu.cs
 │       ├── BinaryAsdu.cs

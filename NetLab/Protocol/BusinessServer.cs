@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using NetLab.Protocol.Channels;
 using NetLab.Protocol.Exchange;
-using Protocol.Channels;
 
 namespace NetLab.Protocol
 {
@@ -9,6 +9,8 @@ namespace NetLab.Protocol
     {
         private readonly int _port;
         private readonly Dictionary<Business, Func<IChannel>> _factories = new();
+
+        public Func<IExchange, IExchange>? ExchangeWrapper = null;
 
         public BusinessServer(int port)
         {
@@ -26,6 +28,7 @@ namespace NetLab.Protocol
             listener.Start();
             Console.WriteLine($"BusinessServer 已启动，监听 0.0.0.0:{_port}");
             Console.WriteLine($"已注册业务：{string.Join(", ", _factories.Keys)}");
+            Console.WriteLine($"加密模式：{(ExchangeWrapper != null ? "开启" : "关闭")}");
 
             while (true)
             {
@@ -40,7 +43,10 @@ namespace NetLab.Protocol
             try
             {
                 using NetworkStream stream = client.GetStream();
-                using IExchange exchange = new StreamExchange(stream);
+                IExchange raw = new StreamExchange(stream);
+                using IExchange exchange = ExchangeWrapper != null
+                    ? ExchangeWrapper(raw)
+                    : raw;
                 StartupChannel(exchange);
             }
             catch (Exception ex)

@@ -149,5 +149,35 @@ namespace NetLab.Client
             Console.WriteLine("Net.Connect 不走连接池——外部业务通道专线专用。");
             Console.ReadKey();
         }
+
+        /// <summary>
+        /// Phase 5 演示：两端同时切加密，业务代码一行不改。
+        /// </summary>
+        public void RunSecureTest()
+        {
+            // 客户端：一行切换到加密
+            Net.CreateExchange = (host, port) =>
+            {
+                TcpClient client = new TcpClient(host, port);
+                return new SecureExchange(new StreamExchange(client.GetStream()));
+            };
+
+            using IExchange? conn = Net.Connect(_host, _port, Business.Manage);
+            if (conn != null)
+            {
+                IAsdu msg = new BinaryAsdu(Encoding.UTF8.GetBytes("加密消息"));
+                FrameCodec.SendFrame(conn, msg.GetContent());
+                byte[]? resp = FrameCodec.ReceiveFrame(conn);
+                if (resp != null)
+                    Console.WriteLine($"加密通道回显：{Encoding.UTF8.GetString(resp)}");
+            }
+
+            Console.WriteLine("========== Phase 5 效果 ==========");
+            Console.WriteLine("客户端：SecureExchange(StreamExchange)");
+            Console.WriteLine("服务端：ExchangeWrapper = SecureExchange");
+            Console.WriteLine("两端的 CreateExchange / ExchangeWrapper 各加一层包装。");
+            Console.WriteLine("Net.Connect / FrameCodec / EchoChannel 一行没改。");
+            Console.ReadKey();
+        }
     }
 }

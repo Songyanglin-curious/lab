@@ -1,7 +1,6 @@
 using System.Text;
 using NetLab.Protocol.Exchange;
 using NetLab.Protocol.Messages;
-using Protocol.Channels;
 
 namespace NetLab.Protocol.Channels
 {

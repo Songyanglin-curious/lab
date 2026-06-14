@@ -1,6 +1,6 @@
 using NetLab.Protocol.Exchange;
 
-namespace Protocol.Channels
+namespace NetLab.Protocol.Channels
 {
     public interface IChannel : IDisposable
     {
