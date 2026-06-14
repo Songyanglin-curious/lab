@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace NetLab.Client.Messages
+namespace NetLab.Protocol.Messages
 {
     public class JsonAsdu : IAsdu
     {

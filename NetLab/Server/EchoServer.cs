@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using NetLab.Server.Messages;
+using NetLab.Protocol;
+using NetLab.Protocol.Messages;
 
 namespace NetLab.Server
 {
@@ -43,14 +44,22 @@ namespace NetLab.Server
                         Console.WriteLine($"客户端 {client.Client.RemoteEndPoint} 已断开");
                         break;
                     }
+                    if (payload != null && payload.Length > 0 && payload[0] == 0xFF)
+                    {
+                        Console.WriteLine("收到心跳");
+                        // 不回复或回复特定内容
+                    }
+                    else
+                    {
+                        string text = Encoding.UTF8.GetString(payload);
+                        Console.WriteLine($"[{client.Client.RemoteEndPoint}] 收到帧：{payload.Length} 字节 → {text}");
 
-                    string text = Encoding.UTF8.GetString(payload);
-                    Console.WriteLine($"[{client.Client.RemoteEndPoint}] 收到帧：{payload.Length} 字节 → {text}");
-
-                    // 业务层构造 ASDU → 转字节 → 传给传输层
-                    IAsdu asdu = new BinaryAsdu(payload);
-                    FrameCodec.SendFrame(stream, asdu.GetContent());
-                    Console.WriteLine($"[{client.Client.RemoteEndPoint}] 回显 {payload.Length} 字节");
+                        // 业务层构造 ASDU → 转字节 → 传给传输层
+                        IAsdu asdu = new BinaryAsdu(payload);
+                        FrameCodec.SendFrame(stream, asdu.GetContent());
+                        Console.WriteLine($"[{client.Client.RemoteEndPoint}] 回显 {payload.Length} 字节");
+                    }
+  
                 }
             }
             catch (Exception ex)

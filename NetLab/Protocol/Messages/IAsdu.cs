@@ -1,4 +1,4 @@
-namespace NetLab.Server.Messages
+namespace NetLab.Protocol.Messages
 {
     public interface IAsdu
     {

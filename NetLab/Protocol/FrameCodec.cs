@@ -1,6 +1,6 @@
 using System.Net.Sockets;
 
-namespace NetLab.Client
+namespace NetLab.Protocol
 {
     public static class FrameCodec
     {
@@ -17,14 +17,12 @@ namespace NetLab.Client
 
         public static byte[]? ReceiveFrame(NetworkStream stream)
         {
-            // 1. 读帧头（固定 2 字节）
             byte[] magic = new byte[2];
             if (ReadExactly(stream, magic, 2) != 2)
                 return null;
             if (magic[0] != 0xEB || magic[1] != 0x90)
                 throw new Exception($"帧头错误: {magic[0]:X2} {magic[1]:X2}");
 
-            // 2. 读变长长度
             var lenList = new List<byte>();
             while (true)
             {
@@ -36,7 +34,6 @@ namespace NetLab.Client
             }
             long length = BytesToLength(lenList.ToArray());
 
-            // 3. 读载荷
             if (length == 0) return Array.Empty<byte>();
             byte[] payload = new byte[length];
             if (ReadExactly(stream, payload, (int)length) != length)
@@ -49,10 +46,12 @@ namespace NetLab.Client
             int total = 0;
             while (total < count)
             {
+                // stream.Read 读的是字节不是位
                 int n = stream.Read(buffer, total, count - total);
                 if (n == 0) return total;
                 total += n;
             }
+            //返回的是已经读取的字节数
             return total;
         }
 
